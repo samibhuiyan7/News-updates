@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "Bookmark": {
+      "title": "Bookmark",
+      "description": "A bookmarked news article",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The UID of the user who bookmarked the article" },
+        "articleId": { "type": "string", "description": "Unique ID for the article (often URL)" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "url": { "type": "string" },
+        "urlToImage": { "type": "string" },
+        "publishedAt": { "type": "string" },
+        "source": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "articleId", "title", "url"]
+    },
+    "UserPreference": {
+      "title": "UserPreference",
+      "description": "User specific settings and preferences",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "favoriteCountries": { "type": "array", "items": { "type": "string" } },
+        "favoriteCategories": { "type": "array", "items": { "type": "string" } },
+        "notificationsEnabled": { "type": "boolean" },
+        "language": { "type": "string" }
+      },
+      "required": ["userId"]
+    }
+  },
+  "firestore": {
+    "/bookmarks/{bookmarkId}": {
+      "schema": "Bookmark",
+      "description": "Collection of user bookmarks"
+    },
+    "/preferences/{userId}": {
+      "schema": "UserPreference",
+      "description": "User preferences document"
+    }
+  }
+}

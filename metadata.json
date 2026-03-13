@@ -1,0 +1,8 @@
+{
+  "name": "Global Hourly Update",
+  "description": "A professional global news platform with AI summaries, Ramadan prayer times, and interactive world map.",
+  "requestFramePermissions": [
+    "geolocation",
+    "notifications"
+  ]
+}

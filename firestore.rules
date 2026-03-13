@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: bookmarks
+    // Fields:
+    //   - userId: string (required)
+    //   - articleId: string (required)
+    //   - title: string (required)
+    //   - description: string
+    //   - url: string (required)
+    //   - urlToImage: string
+    //   - publishedAt: string
+    //   - source: string
+    //   - createdAt: string (ISO 8601)
+    //
+    // Collection: preferences
+    // Fields:
+    //   - userId: string (required)
+    //   - favoriteCountries: list
+    //   - favoriteCategories: list
+    //   - notificationsEnabled: bool
+    //   - language: string
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidBookmark(data) {
+      return data.keys().hasAll(['userId', 'articleId', 'title', 'url']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.articleId is string && data.articleId.size() < 1000 &&
+             data.title is string && data.title.size() < 500 &&
+             data.url is string && data.url.size() < 2000;
+    }
+
+    function isValidPreference(data) {
+      return data.keys().hasAll(['userId']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             (!('favoriteCountries' in data) || data.favoriteCountries is list) &&
+             (!('favoriteCategories' in data) || data.favoriteCategories is list) &&
+             (!('notificationsEnabled' in data) || data.notificationsEnabled is bool) &&
+             (!('language' in data) || data.language is string);
+    }
+
+    match /bookmarks/{bookmarkId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidBookmark(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update: if false; // Bookmarks are immutable for now
+    }
+
+    match /preferences/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidPreference(request.resource.data);
+    }
+  }
+}
